@@ -438,7 +438,8 @@ begin
     try
       DefaultDOMVendor := SMSXML;
       XMLDoc := TXMLDocument.Create(nil);
-      XMLDoc.ParseOptions := [poPreserveWhiteSpace];
+      XMLDoc.ParseOptions := [];
+      XMLDoc.Options := XMLDoc.Options + [doNodeAutoIndent];
       XMLDoc.FileName := AFileName;
       XMLDoc.Active := True;
       SupportedPlatforms := TStringList.Create;
