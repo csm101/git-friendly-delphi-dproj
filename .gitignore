@@ -1,0 +1,40 @@
+# Delphi build outputs
+*.dcu
+*.ddp
+*.dcp
+*.drc
+*.map
+*.tds
+*.rsm
+*.bpl
+*.bpi
+*.hpp
+*.obj
+*.lib
+*.o
+*.ppu
+*.compiled
+
+# Delphi project local/session files
+*.dsk
+*.identcache
+*.local
+
+# IDE history/recovery
+__history/
+__recovery/
+
+# Build folders
+Win32/
+Win64/
+
+# Local sidecars (developer settings)
+*.localcfg
+*.localcfg.original
+
+# Legacy sidecars (backward compatibility)
+*.teamowork.local
+*.teamowork.local.original
+
+# Group workspace/local files
+*.code-workspace

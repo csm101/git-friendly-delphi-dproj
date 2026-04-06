@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{698459E8-EAAE-4342-9053-238368100E5B}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="TeamoworkFriendlyDproj.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Test\DprojSanitizerTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Tools\DprojSanitizerCli\DprojSanitizerCli.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="TeamoworkFriendlyDproj">
+        <MSBuild Projects="TeamoworkFriendlyDproj.dproj"/>
+    </Target>
+    <Target Name="TeamoworkFriendlyDproj:Clean">
+        <MSBuild Projects="TeamoworkFriendlyDproj.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TeamoworkFriendlyDproj:Make">
+        <MSBuild Projects="TeamoworkFriendlyDproj.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DprojSanitizerTest">
+        <MSBuild Projects="Test\DprojSanitizerTest.dproj"/>
+    </Target>
+    <Target Name="DprojSanitizerTest:Clean">
+        <MSBuild Projects="Test\DprojSanitizerTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DprojSanitizerTest:Make">
+        <MSBuild Projects="Test\DprojSanitizerTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DprojSanitizerCli">
+        <MSBuild Projects="Tools\DprojSanitizerCli\DprojSanitizerCli.dproj"/>
+    </Target>
+    <Target Name="DprojSanitizerCli:Clean">
+        <MSBuild Projects="Tools\DprojSanitizerCli\DprojSanitizerCli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DprojSanitizerCli:Make">
+        <MSBuild Projects="Tools\DprojSanitizerCli\DprojSanitizerCli.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="TeamoworkFriendlyDproj;DprojSanitizerTest;DprojSanitizerCli"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="TeamoworkFriendlyDproj:Clean;DprojSanitizerTest:Clean;DprojSanitizerCli:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="TeamoworkFriendlyDproj:Make;DprojSanitizerTest:Make;DprojSanitizerCli:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
