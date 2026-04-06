@@ -63,8 +63,8 @@ procedure CaptureProjectSettings(const AProject: IOTAProject;
   out ACurrentPlatform: string; out ARunParamsMatrix: TRunParamsMatrix); forward;
 procedure RestoreProjectSettingsFromValues(const AProject: IOTAProject;
   const ACurrentPlatform: string; const ARunParamsMatrix: TRunParamsMatrix); forward;
+function RestoreProjectSettingsFromSidecar(const AProject: IOTAProject): Boolean; forward;
 procedure RestoreProjectSettingsFromSidecarOnce(const AProject: IOTAProject); forward;
-procedure RestoreProjectSettingsFromSidecar(const AProject: IOTAProject); forward;
 procedure ApplySanitizedSettingsBeforeSave(const AProject: IOTAProject); forward;
 procedure QueueRestoreProjectSettingsFromSidecar(const AProjectFileName: string); forward;
 
@@ -92,6 +92,34 @@ begin
   except
     Result := '';
   end;
+end;
+
+procedure ClearProjectOptionsModifiedState(const AProject: IOTAProject);
+begin
+  if not Assigned(AProject) then
+    Exit;
+
+  var ProjectOptions70: IOTAProjectOptions70;
+  if not Supports(AProject.ProjectOptions, IOTAProjectOptions70, ProjectOptions70) then
+    Exit;
+
+  try
+    ProjectOptions70.SetModifiedState(False);
+  except
+  end;
+end;
+
+procedure SaveProjectModuleSilently(const AProject: IOTAProject);
+begin
+  if not Assigned(AProject) then
+    Exit;
+
+  try
+    (AProject as IOTAModule).Save(False, True);
+  except
+  end;
+
+  ClearProjectOptionsModifiedState(AProject);
 end;
 
 function FindBuildConfiguration(const AOptionsConfigurations: IOTAProjectOptionsConfigurations;
@@ -191,7 +219,9 @@ begin
     begin
       var Project160 := AProject as IOTAProject160;
       try
-        Project160.SetPlatform(ACurrentPlatform);
+        var CurrentPlatform := Project160.CurrentPlatform;
+        if not SameText(CurrentPlatform, ACurrentPlatform) then
+          Project160.SetPlatform(ACurrentPlatform);
       except
       end;
     end;
@@ -208,7 +238,9 @@ begin
       if Entry.PlatformName = '' then
       begin
         try
-          Configuration.Value[sDebugger_RunParams] := Entry.RunParams;
+          var CurrentRunParams := ReadRunParamsValue(Configuration);
+          if CurrentRunParams <> Entry.RunParams then
+            Configuration.Value[sDebugger_RunParams] := Entry.RunParams;
         except
         end;
         Continue;
@@ -217,27 +249,41 @@ begin
       try
         var PlatformConfiguration := Configuration.PlatformConfiguration[Entry.PlatformName];
         if Assigned(PlatformConfiguration) then
-          PlatformConfiguration.Value[sDebugger_RunParams] := Entry.RunParams;
+        begin
+          var CurrentRunParams := ReadRunParamsValue(PlatformConfiguration);
+          if CurrentRunParams <> Entry.RunParams then
+            PlatformConfiguration.Value[sDebugger_RunParams] := Entry.RunParams;
+        end;
       except
       end;
     end
   else if Length(ARunParamsMatrix) > 0 then
     try
-      AProject.ProjectOptions.SetOptionValue(sDebugger_RunParams, ARunParamsMatrix[0].RunParams);
+      var CurrentRunParams := VarToStrDef(AProject.ProjectOptions.GetOptionValue(sDebugger_RunParams), '');
+      if CurrentRunParams <> ARunParamsMatrix[0].RunParams then
+        AProject.ProjectOptions.SetOptionValue(sDebugger_RunParams, ARunParamsMatrix[0].RunParams);
     except
     end;
 
+  ClearProjectOptionsModifiedState(AProject);
+
 end;
 
-procedure RestoreProjectSettingsFromSidecar(const AProject: IOTAProject);
+function RestoreProjectSettingsFromSidecar(const AProject: IOTAProject): Boolean;
 begin
+  Result := False;
+
   if not Assigned(AProject) then
     Exit;
 
   var Platform := '';
   var RunParamsMatrix: TRunParamsMatrix := nil;
   LoadTeamworkLocalSettings((AProject as IOTAModule).FileName, Platform, RunParamsMatrix);
+  if (Platform = '') and (Length(RunParamsMatrix) = 0) then
+    Exit;
+
   RestoreProjectSettingsFromValues(AProject, Platform, RunParamsMatrix);
+  Result := True;
 
 end;
 
@@ -254,7 +300,9 @@ begin
     Exit;
 
   try
-    RestoreProjectSettingsFromSidecar(AProject);
+    var SettingsRestored := RestoreProjectSettingsFromSidecar(AProject);
+    if SettingsRestored then
+      SaveProjectModuleSilently(AProject);
     GRestoredProjectFiles.Add(ProjectFileName);
   except
   end;
