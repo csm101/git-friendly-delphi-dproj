@@ -35,6 +35,7 @@ requires
 
 contains
   untLocalProjectSettings in 'untLocalProjectSettings.pas',
+  untCvsLegacySupport in 'untCvsLegacySupport.pas',
   untDprojSanitizer in 'untDprojSanitizer.pas',
   untLocalDevSettingsStore in 'untLocalDevSettingsStore.pas';
 
