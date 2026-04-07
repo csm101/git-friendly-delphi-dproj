@@ -149,6 +149,27 @@ Never commit local sidecars or Delphi local files.
 
 Recommended ignore rules are included in `.gitignore`.
 
+## Legacy CVS Compatibility
+
+Some organizations still use CVS (Concurrent Versions System), a legacy VCS predating Git/SVN.
+
+In CVS working copies, a file may appear "locally modified" only because its filesystem timestamp changed,
+even when file bytes are identical to the last checked-out version. This can happen with Delphi project files,
+because IDE save + post-processing may rewrite the file and then restore equivalent content.
+
+This project includes a CVS-specific compatibility path in `untLocalProjectSettings.pas` that:
+
+- runs only when a matching `CVS/Entries` row exists for the file
+- captures pre-save bytes only if CVS considered the file clean before save
+- compares pre-save vs post-sanitize bytes
+- if bytes are equal, updates only the timestamp field in `CVS/Entries` for that file
+
+Important guarantees:
+
+- It does not run `cvs update`.
+- It does not fetch or merge remote changes.
+- It does not force-reset real local edits.
+
 ## Known Limitations
 
 - The plugin targets Delphi ToolsAPI behavior available in modern RAD Studio versions.
