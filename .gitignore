@@ -38,3 +38,13 @@ Win64/
 
 # Group workspace/local files
 *.code-workspace
+
+# varius backups and temporary files
+*.~*
+.#*
+.bak
+*.backup
+*.tmp
+*.temp
+*.BAK
+*.TMP
