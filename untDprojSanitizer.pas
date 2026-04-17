@@ -1,4 +1,4 @@
-unit untDprojSanitizer;
+﻿unit untDprojSanitizer;
 
 {
   XML sanitizer for Delphi .dproj files.
@@ -93,11 +93,16 @@ begin
   end;
 end;
 
-// Extracts platform name from an MSBuild Condition string such as:
-//   ('$(Platform)'=='Linux64' and '$(Base)'=='true') or '$(Base_Linux64)'!=''
+// Extracts platform name from an MSBuild Condition string.
+// Handles both forms:
+//   Classic: '$(Platform)'=='Android' and '$(Base)'=='true'
+//   Short:   '$(Base_Android64)'!=''
 function PlatformFromCondition(const ACondition: string): string;
 begin
   var Match := TRegEx.Match(ACondition, '''\$\(Platform\)''==''([^'']+)''');
+  if Match.Success then
+    Exit(Match.Groups[1].Value);
+  Match := TRegEx.Match(ACondition, '\$\(Base_([A-Za-z0-9]+)\)');
   if Match.Success then
     Result := Match.Groups[1].Value
   else
@@ -150,15 +155,17 @@ end;
 // 2. RemoveUnsupportedPlatformGroups
 // ---------------------------------------------------------------------------
 
-// Only PropertyGroup nodes with '$(Base)'=='true' in Condition are platform-base groups.
+// Only PropertyGroup nodes that are platform-base groups are candidates for removal.
 // Config x platform groups ('$(Cfg_N)'=='true') are never removed.
+// Two forms exist:
+//   Classic: '$(Platform)'=='Win32' and '$(Base)'=='true'
+//   Short:   '$(Base_Android)'!=''
 function IsBasePlatformCondition(const ACondition: string): Boolean;
 begin
-  if not ACondition.Contains('''$(Base)''==''true''') then
-    Exit(False);
-  if not ACondition.Contains('''$(Platform)''==''') then
-    Exit(False);
-  Result := True;
+  if ACondition.Contains('''$(Base)''==''true''') and
+     ACondition.Contains('''$(Platform)''==''') then
+    Exit(True);
+  Result := ACondition.Contains('$(Base_');
 end;
 
 procedure RemoveUnsupportedPlatformGroups(const ARoot: IXMLNode;
